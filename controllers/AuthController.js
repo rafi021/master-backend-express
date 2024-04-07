@@ -1,7 +1,8 @@
 import prismaclient from "../DB/db.config.js";
 import vine, {errors} from "@vinejs/vine";
-import { registerSchema } from "../validations/authValidation.js";
+import { loginSchema, registerSchema } from "../validations/authValidation.js";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 class AuthController {
   static async register(req, res) {
@@ -56,6 +57,85 @@ class AuthController {
         }
     }
   }
+
+
+  static async login(req, res) {
+    try {
+      const body = req.body;
+      const validator = vine.compile(loginSchema);
+      const payload = await validator.validate(body);
+      
+      // Check if email exists
+      const findUser = await prismaclient.users.findUnique({
+        where: {
+          email: payload.email
+        }
+      })
+
+       if(!findUser){
+        return res.status(400).json({
+            status: 400,
+            message: "Email does not exist!",
+            errors: {
+                email: "Email does not exist!"
+            }
+        })
+       }
+
+       if(findUser){
+        // Check if password matches
+        const isMatch = bcrypt.compareSync(payload.password, findUser.password);
+        if(!isMatch){
+            return res.status(400).json({
+                status: 400,
+                message: "Password does not match!",
+                errors: {
+                    password: "password does not match!"
+                }
+            })
+        }
+
+        // create token
+        const payloadData = {
+            id: findUser.id,
+            name: findUser.name,
+            phone: findUser.phone,
+            email: findUser.email,
+            profile: findUser.profile
+        }
+        const token = jwt.sign(payloadData, process.env.JWT_SECRET, {
+            expiresIn: "1d" // expires in 24 hours
+        });
+
+        return res.status(200).json({
+            status: 200,
+            message: "User logged in successfully!",
+            access_token: `${token}`
+        });
+       }
+
+
+
+    } catch (error) {
+        if(error instanceof errors.E_VALIDATION_ERROR){
+            // console.log(error.messages);
+            return res.status(400).json({
+                errors: error.messages
+            })
+        }else{
+            return res.status(500).json({
+                status: 500,
+                message: "Internal Server Error",
+                errors: error.message
+            })
+        }
+    }
+  }
+
+  static async me(req, res) {
+
+  }
+
 }
 
 export default AuthController;
