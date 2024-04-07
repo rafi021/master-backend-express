@@ -23,7 +23,7 @@ app.get("/", (req, res) => {
 
 // Import routes
 import ApiRoutes from "./routes/api.js";
-app.use("/api", ApiRoutes);
+app.use("/api/v1", ApiRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on PORT ${PORT}`);
