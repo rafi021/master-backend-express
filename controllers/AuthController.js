@@ -4,6 +4,8 @@ import { loginSchema, registerSchema } from "../validations/authValidation.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { formatDateTime } from "../utils/helper.js";
+import { sendEmail } from "../config/mailer.js";
+import logger from "../config/logger.js";
 
 class AuthController {
   static async register(req, res) {
@@ -129,7 +131,35 @@ class AuthController {
     }
   }
 
-  static async me(req, res) {}
+  static async sendTestEmail(req, res) {
+    try {
+      const { email, subject, body } = req.query;
+
+      const payload = {
+        toEmail: email,
+        subject: subject ?? "Test Email",
+        body: `<h1>${body}</h1>`,
+      };
+
+      await sendEmail(payload.toEmail, payload.subject, payload.body);
+
+      return res.status(200).json({
+        status: 200,
+        message: "Email sent successfully!",
+      });
+    } catch (error) {
+      logger.error({
+        type: "Email Error",
+        body: error.message,
+      });
+
+      return res.status(500).json({
+        status: 500,
+        message: "Internal Server Error",
+        errors: error.message,
+      });
+    }
+  }
 }
 
 export default AuthController;

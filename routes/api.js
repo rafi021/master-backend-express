@@ -9,6 +9,7 @@ const router = Router();
 
 router.post("/auth/register", AuthController.register);
 router.post("/auth/login", AuthController.login);
+router.get("/send-email", AuthController.sendTestEmail);
 
 /* User Routes */
 router.get("/profile", [authMiddleware], ProfileController.index);
