@@ -1,9 +1,9 @@
 import express from "express";
 import "dotenv/config";
+import fileUpload from "express-fileupload";
 
 const app = express();
 
-import fileUpload from "express-fileupload";
 const PORT = process.env.PORT || 4000;
 
 // Middleware
