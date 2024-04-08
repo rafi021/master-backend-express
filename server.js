@@ -7,6 +7,7 @@ import fileUpload from "express-fileupload";
 import helmet from "helmet";
 import cors from "cors";
 import { limiter } from "./config/ratelimiter.js";
+import logger from "./config/logger.js";
 
 const PORT = process.env.PORT || 4000;
 
@@ -28,6 +29,9 @@ app.get("/", (req, res) => {
 // Import routes
 import ApiRoutes from "./routes/api.js";
 app.use("/api/v1", ApiRoutes);
+
+// Logger
+logger.info("Application is running...");
 
 app.listen(PORT, () => {
   console.log(`Server is running on PORT ${PORT}`);

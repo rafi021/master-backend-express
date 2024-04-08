@@ -1,5 +1,6 @@
 import prismaclient from "../DB/db.config.js";
 import redisCache from "../DB/redis.config.js";
+import logger from "../config/logger.js";
 import NewsApiTransform from "../transform/newsApiTransform.js";
 import {
   generateRandomNumber,
@@ -119,6 +120,7 @@ class NewsController {
         news: news,
       });
     } catch (error) {
+      logger.error(error.message);
       if (error instanceof errors.E_VALIDATION_ERROR) {
         // console.log(error.messages);
         return res.status(400).json({
@@ -207,6 +209,7 @@ class NewsController {
 
       return res.status(200).json({ message: "News updated successfully!" });
     } catch (error) {
+      logger.error(error.message);
       if (error instanceof errors.E_VALIDATION_ERROR) {
         console.log(error.messages);
         return res.status(400).json({ errors: error.messages });
@@ -247,6 +250,7 @@ class NewsController {
 
       return res.json({ message: "News deleted successfully!" });
     } catch (error) {
+      logger.error(error.message);
       return res.status(500).json({
         status: 500,
         message: "Something went wrong.Please try again.",
