@@ -31,7 +31,10 @@ import ApiRoutes from "./routes/api.js";
 app.use("/api/v1", ApiRoutes);
 
 // Logger
-logger.info("Application is running...");
+// logger.info("Application is running...");
+
+/* Jobs Import */
+import "./jobs/index.js";
 
 app.listen(PORT, () => {
   console.log(`Server is running on PORT ${PORT}`);

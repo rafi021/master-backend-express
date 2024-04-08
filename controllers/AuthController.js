@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import { formatDateTime } from "../utils/helper.js";
 import { sendEmail } from "../config/mailer.js";
 import logger from "../config/logger.js";
+import { emailQueue, emailQueueName } from "../jobs/SendEmailJob.js";
 
 class AuthController {
   static async register(req, res) {
@@ -141,11 +142,12 @@ class AuthController {
         body: `<h1>${body}</h1>`,
       };
 
-      await sendEmail(payload.toEmail, payload.subject, payload.body);
+      // await sendEmail(payload.toEmail, payload.subject, payload.body);
+      await emailQueue.add(emailQueueName, payload);
 
       return res.status(200).json({
         status: 200,
-        message: "Email sent successfully!",
+        message: "Job added successfully!",
       });
     } catch (error) {
       logger.error({
