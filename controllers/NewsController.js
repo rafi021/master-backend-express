@@ -1,10 +1,20 @@
 import prismaclient from "../DB/db.config.js";
+import NewsApiTransform from "../transform/newsApiTransform.js";
 import { generateRandomNumber, imageValidator } from "../utils/helper.js";
 import { newsSchema } from "../validations/newsValidation.js";
 import vine, { errors } from "@vinejs/vine";
 
 class NewsController {
-  static async index(req, res) {}
+  static async index(req, res) {
+    const news = await prismaclient.news.findMany({});
+    const newsTransform = news?.map((item) => NewsApiTransform.transform(item));
+
+    return res.status(200).json({
+      status: 200,
+      message: "News fetched successfully!",
+      news: newsTransform,
+    });
+  }
   static async store(req, res) {
     try {
       const user = req.user;

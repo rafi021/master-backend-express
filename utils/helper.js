@@ -23,3 +23,7 @@ export const byteToMb = (bytes) => {
 export const generateRandomNumber = () => {
   return uuidv4();
 };
+
+export const getImageUrl = (imageName) => {
+  return `${process.env.APP_URL}/images/${imageName}`;
+};
