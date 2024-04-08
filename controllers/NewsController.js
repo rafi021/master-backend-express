@@ -6,7 +6,21 @@ import vine, { errors } from "@vinejs/vine";
 
 class NewsController {
   static async index(req, res) {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 5;
+
+    if (page <= 0) {
+      page = 1;
+    }
+    if (limit <= 0 || limit > 100) {
+      limit = 10;
+    }
+
+    const skip = (page - 1) * limit;
+
     const news = await prismaclient.news.findMany({
+      take: limit,
+      skip: skip,
       include: {
         user: {
           select: {
@@ -17,12 +31,21 @@ class NewsController {
         },
       },
     });
+
     const newsTransform = news?.map((item) => NewsApiTransform.transform(item));
+    const totalNews = await prismaclient.news.count();
+    const totalPages = Math.ceil(totalNews / limit);
 
     return res.status(200).json({
       status: 200,
       message: "News fetched successfully!",
       news: newsTransform,
+      metadata: {
+        totalNews: totalNews,
+        totalPages: totalPages,
+        currentPage: page,
+        currentLimit: limit,
+      },
     });
   }
   static async store(req, res) {
