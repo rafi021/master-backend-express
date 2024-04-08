@@ -1,6 +1,11 @@
 import prismaclient from "../DB/db.config.js";
 import NewsApiTransform from "../transform/newsApiTransform.js";
-import { generateRandomNumber, imageValidator } from "../utils/helper.js";
+import {
+  generateRandomNumber,
+  imageValidator,
+  removeImage,
+  uploadImage,
+} from "../utils/helper.js";
 import { newsSchema } from "../validations/newsValidation.js";
 import vine, { errors } from "@vinejs/vine";
 
@@ -122,9 +127,116 @@ class NewsController {
       }
     }
   }
-  static async show(req, res) {}
-  static async update(req, res) {}
-  static async delete(req, res) {}
+  static async show(req, res) {
+    const { id } = req.params;
+    const news = await prismaclient.news.findUnique({
+      where: {
+        id: Number(id),
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            profile_image: true,
+          },
+        },
+      },
+    });
+
+    return res.status(200).json({
+      status: 200,
+      message: "News fetched successfully!",
+      news: news ? NewsApiTransform.transform(news) : null,
+    });
+  }
+  static async update(req, res) {
+    try {
+      const { id } = req.params;
+      const user = req.user;
+      const body = req.body;
+
+      const news = await prismaclient.news.findUnique({
+        where: {
+          id: Number(id),
+        },
+      });
+
+      if (user.id !== news.user_id) {
+        return res.status(400).json({ message: "UnAtuhorized" });
+      }
+
+      const validator = vine.compile(newsSchema);
+      const payload = await validator.validate(body);
+      const image = req?.files?.image;
+
+      if (image) {
+        const message = imageValidator(image?.size, image?.mimetype);
+        if (message !== null) {
+          return res.status(400).json({
+            errors: {
+              image: message,
+            },
+          });
+        }
+
+        //   * Upload new image
+        const imageName = uploadImage(image);
+        payload.image = imageName;
+        // * Delete old image
+        removeImage(news.image);
+      }
+
+      await prismaclient.news.update({
+        data: payload,
+        where: {
+          id: Number(id),
+        },
+      });
+
+      return res.status(200).json({ message: "News updated successfully!" });
+    } catch (error) {
+      if (error instanceof errors.E_VALIDATION_ERROR) {
+        console.log(error.messages);
+        return res.status(400).json({ errors: error.messages });
+      } else {
+        return res.status(500).json({
+          status: 500,
+          message: "Something went wrong.Please try again.",
+          errors: error.message,
+        });
+      }
+    }
+  }
+  static async delete(req, res) {
+    try {
+      const { id } = req.params;
+      const user = req.user;
+      const news = await prismaclient.news.findUnique({
+        where: {
+          id: Number(id),
+        },
+      });
+      if (user.id !== news?.user_id) {
+        return res.status(401).json({ message: "UnAuthorized" });
+      }
+
+      // * Delete image from filesystem
+      removeImage(news.image);
+      await prismaclient.news.delete({
+        where: {
+          id: Number(id),
+        },
+      });
+      return res.json({ message: "News deleted successfully!" });
+    } catch (error) {
+      return res.status(500).json({
+        status: 500,
+        message: "Something went wrong.Please try again.",
+        errors: error.message,
+      });
+    }
+  }
 }
 
 export default NewsController;
