@@ -136,11 +136,28 @@ class AuthController {
     try {
       const { email, subject, body } = req.query;
 
-      const payload = {
-        toEmail: email,
-        subject: subject ?? "Test Email",
-        body: `<h1>${body}</h1>`,
-      };
+      const payload = [
+        {
+          toEmail: email,
+          subject: subject ?? "Test Email",
+          body: `<h1>${body}</h1>`,
+        },
+        {
+          toEmail: email,
+          subject: "Test Email 1",
+          body: `<h1>${body}</h1>`,
+        },
+        {
+          toEmail: email,
+          subject: "Test Email 2",
+          body: `<h1>${body}</h1>`,
+        },
+        {
+          toEmail: email,
+          subject: "Test Email 3",
+          body: `<h1>${body}</h1>`,
+        },
+      ];
 
       // await sendEmail(payload.toEmail, payload.subject, payload.body);
       await emailQueue.add(emailQueueName, payload);
