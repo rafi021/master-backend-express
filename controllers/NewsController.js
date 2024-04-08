@@ -1,4 +1,5 @@
 import prismaclient from "../DB/db.config.js";
+import redisCache from "../DB/redis.config.js";
 import NewsApiTransform from "../transform/newsApiTransform.js";
 import {
   generateRandomNumber,
@@ -107,6 +108,11 @@ class NewsController {
         data: payload,
       });
 
+      /* remove cache */
+      redisCache.del("news-list", (err) => {
+        if (err) throw err;
+      });
+
       return res.status(200).json({
         status: 200,
         message: "News created successfully!",
@@ -194,6 +200,11 @@ class NewsController {
         },
       });
 
+      /* remove cache */
+      redisCache.del("news-list", (err) => {
+        if (err) throw err;
+      });
+
       return res.status(200).json({ message: "News updated successfully!" });
     } catch (error) {
       if (error instanceof errors.E_VALIDATION_ERROR) {
@@ -228,6 +239,12 @@ class NewsController {
           id: Number(id),
         },
       });
+
+      /* remove cache */
+      redisCache.del("news-list", (err) => {
+        if (err) throw err;
+      });
+
       return res.json({ message: "News deleted successfully!" });
     } catch (error) {
       return res.status(500).json({
