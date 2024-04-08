@@ -6,7 +6,17 @@ import vine, { errors } from "@vinejs/vine";
 
 class NewsController {
   static async index(req, res) {
-    const news = await prismaclient.news.findMany({});
+    const news = await prismaclient.news.findMany({
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            profile_image: true,
+          },
+        },
+      },
+    });
     const newsTransform = news?.map((item) => NewsApiTransform.transform(item));
 
     return res.status(200).json({
